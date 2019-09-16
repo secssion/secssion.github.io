@@ -15,11 +15,11 @@ tags:
 最近在想一个`https`强制重定向的问题，阅读了`goaehad`相关代码，顺便记录。
 
 ### 基本I/O循环
-`websServiceEvents`实现对`socket`的循环事件检测处理。`socketSelect`检测出事件类型。`socketProcess`对应调用事件对应处理回调函数处理。`websRunEvents`实现对定时器函数检测是否到期执行。值得一提的是，`select`所用的`dela`y时间是所有的注册定时器中所用时间最小的值，如此动态处理`select`时间能较好的定时处理的定时要求。
+`websServiceEvents`实现对`socket`的循环事件检测处理。`socketSelect`检测出事件类型。`socketProcess`对应调用事件对应处理回调函数处理。`websRunEvents`实现对定时器函数检测是否到期执行。值得一提的是，`select`所用的`dela`y时间是所有的注册定时器中所用时间最小的值，如此动态处理`select`时间能较好的满足定时处理的定时精确要求。
 ```
 	PUBLIC void websServiceEvents(int *finished)
 	{
-  		 ……
+  	……
         while (!finished || !*finished) {
             if (socketSelect(-1, delay)) {
                 gTimeNow = system_get_uptime();//time(0);	
@@ -27,7 +27,7 @@ tags:
             }
             nextEvent = websRunEvents();
             delay = min(delay, nextEvent);
-         ……
+    ……
         }
 	}
 ```
@@ -85,7 +85,7 @@ tags:
 
 ### socketProcess
 `socketProcess`检测所有的`socket`，对于已经触发过事件的`socket`执行执行`handler`。
-````
+```
 PUBLIC void socketProcess()
 {
     WebsSocket    *sp;
@@ -100,30 +100,31 @@ PUBLIC void socketProcess()
     }
 }
 ```
+
 `socketDoEvent`先检测是否是新连接过来，如果是则`accept`,然后调用`websaccept`处理新连接；否则，调用预先注册的`handler`处理触发事件。
-````
+```
 static void socketDoEvent(WebsSocket *sp)
 {
-   ……
-      sid = sp->sid;
-     if (sp->currentEvents & SOCKET_READABLE) {
-        if (sp->flags & SOCKET_LISTENING) { 
-            TRACE;	
-            socketAccept(sp);
-            sp->currentEvents = 0;
-            return;
-        } 
-    }
-    if (sp->handler && (sp->handlerMask & sp->currentEvents)) {
-		
-        (sp->handler)(sid, sp->handlerMask & sp->currentEvents, sp->handler_data);
-        if (socketList && sid < socketMax && socketList[sid] == sp) {
-            sp->currentEvents = 0;
-        }
-    }
-   ……
+……
+	  sid = sp->sid;
+	 if (sp->currentEvents & SOCKET_READABLE) {
+		if (sp->flags & SOCKET_LISTENING) { 
+			TRACE;	
+			socketAccept(sp);
+			sp->currentEvents = 0;
+			return;
+		} 
+	}
+	if (sp->handler && (sp->handlerMask & sp->currentEvents)) {
+		(sp->handler)(sid, sp->handlerMask & sp->currentEvents, sp->handler_data);
+		if (socketList && sid < socketMax && socketList[sid] == sp) {
+			sp->currentEvents = 0;
+		}
+	}
+……
 }
-````
+```
+
 
 ### websRunEvents 
 `websRunEvents`检测注册的定时函数是否到期，到期执行，并给出最小定时时间。
