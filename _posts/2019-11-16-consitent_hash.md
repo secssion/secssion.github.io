@@ -47,12 +47,21 @@ tags:
 
 通过增加虚拟节点使得整个hash环节点的分布能更加紧密，请求能相对更好分散到多个机器，但是均衡程度取决于虚拟节点的添加算法。
 
-如：之前是 hash(server1"192.168.10.123")  =>  Server1.1  , 增加Server1的虚拟节点 hash(Server“192.168.10.123 ##”) =》Server1.2。
+如：通过在Server1的IP后面添加"##",增加Server1.1的虚机节点
+```
+		 hash(server1"192.168.10.123")    =》 Server1.1  
+		 hash(Server1“192.168.10.123 ##”) =》 Server1.2。
+```
 
 
+​	![hash_ring6](/img/post-in/hash_ring6.png)
 
-![hash_ring6](C:\Users\xiedongsheng\Desktop\hash_ring6.PNG)
+#### 扩展
+通过多加虚拟节点使节点分布能更加均与，但是节点分布情况还是取决于虚拟节点添加算法，分布情况还是存在不确定。另一种思路就是：在hash环上固定均与划分vnode, 而维护机器到vnode的映射关系。
 
+
+#### 简单实现
+- [代码](https://github.com/secssion/LinuxLearnNote/blob/master/consittent_hash/consitent_hash.cpp  )
 
 
 ### 参考
